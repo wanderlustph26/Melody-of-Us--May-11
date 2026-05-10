@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-brand-bg: #121212;
+  --color-brand-card: #1E1E1E;
+  --color-brand-pink: #FF4FA3;
+  --color-brand-pink-soft: #FF80AB;
+  --color-brand-text: #FFFFFF;
+  --color-brand-text-muted: #B3B3B3;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text font-sans antialiased selection:bg-brand-pink/30 selection:text-white;
+  }
+}
+
+.glow-pink {
+  box-shadow: 0 0 20px rgba(255, 79, 163, 0.3);
+}
+
+.glow-pink-hover:hover {
+  box-shadow: 0 0 30px rgba(255, 79, 163, 0.5);
+}
+
+.glass-dark {
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-link {
+  @apply text-[11px] uppercase tracking-[0.2em] font-medium text-brand-text-muted hover:text-brand-pink transition-all;
+}
+
+.bg-gradient-radial {
+  background-image: radial-gradient(circle at center, var(--tw-gradient-from), var(--tw-gradient-to));
+}
