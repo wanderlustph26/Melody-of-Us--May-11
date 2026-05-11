@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -62,8 +62,22 @@ export const OrderForm = () => {
       lyrics: '',
       tempo: 'Moderate',
       deadline: ''
+    },
+    addons: {
+      expedited: false,
+      extraVerse: false
     }
   });
+
+  const BASE_PRICE = 20;
+  const ADDON_PRICE = 10;
+
+  const calculateTotal = () => {
+    let total = BASE_PRICE;
+    if (formData.addons.expedited) total += ADDON_PRICE;
+    if (formData.addons.extraVerse) total += ADDON_PRICE;
+    return total;
+  };
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
@@ -77,25 +91,21 @@ export const OrderForm = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/submit-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          personalDetails: formData.personalDetails,
-          musicDetails: formData.musicDetails,
-          filesCount: files.length // In a real app, we'd upload to S3/Cloudinary first
-        })
-      });
+      // Simulate validation/prep
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      if (response.ok) {
-        setIsSuccess(true);
-        setTimeout(() => navigate('/thank-you'), 3000);
-      } else {
-        alert('Something went wrong. Please try again.');
-      }
+      // Redirect to checkout with order data
+      navigate('/checkout', { 
+        state: { 
+          orderData: {
+            ...formData,
+            totalPrice: calculateTotal()
+          } 
+        } 
+      });
     } catch (error) {
-      console.error('Submission error:', error);
-      alert('Failed to connect to server.');
+      console.error('Preparation error:', error);
+      alert('Failed to prepare order.');
     } finally {
       setIsSubmitting(false);
     }
@@ -363,6 +373,72 @@ export const OrderForm = () => {
           </div>
         );
 
+      case 4:
+        return (
+          <div className="space-y-10">
+            <header>
+              <div className="w-16 h-16 bg-brand-pink/10 rounded-2xl flex items-center justify-center mb-6">
+                <CheckCircle2 className="w-8 h-8 text-brand-pink" />
+              </div>
+              <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight uppercase">Step 4: Final Enhancements</h2>
+              <p className="text-brand-text-muted font-medium">Select optional add-ons to elevate your legacy.</p>
+            </header>
+
+            <div className="space-y-6">
+              <div className="grid gap-4">
+                <button
+                  onClick={() => setFormData({
+                    ...formData,
+                    addons: { ...formData.addons, expedited: !formData.addons.expedited }
+                  })}
+                  className={`p-8 rounded-3xl border text-left transition-all relative overflow-hidden group ${formData.addons.expedited ? 'bg-brand-pink/10 border-brand-pink shadow-[0_0_40px_rgba(255,79,163,0.1)]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
+                >
+                  <div className="flex justify-between items-center relative z-10">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-1">Expedited Delivery</h3>
+                      <p className="text-brand-text-muted text-sm font-medium">Receive your custom track within 48 hours.</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-brand-pink">+$10</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setFormData({
+                    ...formData,
+                    addons: { ...formData.addons, extraVerse: !formData.addons.extraVerse }
+                  })}
+                  className={`p-8 rounded-3xl border text-left transition-all relative overflow-hidden group ${formData.addons.extraVerse ? 'bg-brand-pink/10 border-brand-pink shadow-[0_0_40px_rgba(255,79,163,0.1)]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
+                >
+                  <div className="flex justify-between items-center relative z-10">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-1">Extra Verse / Length</h3>
+                      <p className="text-brand-text-muted text-sm font-medium">Add an additional verse or extend the song duration.</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-brand-pink">+$10</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-8 mt-8">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-text-muted mb-1">Estimated Total</p>
+                    <p className="text-sm font-medium text-white/60">Base Price ($20) + Selected Add-ons</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-4xl font-black text-white">${calculateTotal()}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-pink">USD</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -373,6 +449,7 @@ export const OrderForm = () => {
       case 1: return formData.personalDetails.fullName && formData.personalDetails.email.includes('@');
       case 2: return formData.musicDetails.genre && formData.musicDetails.mood && formData.musicDetails.occasion && formData.musicDetails.description.length > 30;
       case 3: return true; // File upload optional
+      case 4: return true;
       default: return false;
     }
   };
@@ -393,9 +470,9 @@ export const OrderForm = () => {
         {!isSuccess && (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-pink">Initialization Phase {step} of 3</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-pink">Initialization Phase {step} of 4</span>
               <div className="flex gap-2">
-                {Array.from({ length: 3 }).map((_, i) => (
+                {Array.from({ length: 4 }).map((_, i) => (
                   <div 
                     key={i} 
                     className={`h-1.5 w-12 rounded-full transition-all duration-500 ${i + 1 <= step ? 'bg-brand-pink shadow-[0_0_10px_rgba(255,79,163,0.5)]' : 'bg-white/5'}`}
@@ -438,17 +515,17 @@ export const OrderForm = () => {
                   </button>
                 )}
                 <button
-                  onClick={step === 3 ? handleSubmit : nextStep}
+                  onClick={step === 4 ? handleSubmit : nextStep}
                   className="flex-[2] bg-brand-pink text-white py-6 rounded-[24px] font-black text-[14px] uppercase tracking-[0.4em] hover:bg-brand-pink-soft transition-all shadow-xl shadow-brand-pink/20 flex items-center justify-center gap-3 disabled:opacity-20 disabled:grayscale transition-all duration-300"
                   disabled={!isStepValid() || isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" /> Synchronizing...
+                      <Loader2 className="w-5 h-5 animate-spin" /> Preparing Checkout...
                     </>
                   ) : (
                     <>
-                      {step === 3 ? 'Finalize Sonic Genesis' : 'Continue Synchronization'}
+                      {step === 4 ? 'Proceed to Payment' : 'Continue Synchronization'}
                       <ChevronRight className="w-5 h-5" />
                     </>
                   )}

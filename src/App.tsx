@@ -4,7 +4,7 @@
  */
 
 import { Navbar, Hero, HowItWorks, About } from './components/Sections';
-import { Portfolio, EmotionalStory, Testimonials, Contact, FAQ, Footer, TrackSong } from './components/MoreSections';
+import { Portfolio, Testimonials, Contact, FAQ, Footer, TrackSong } from './components/MoreSections';
 import { Checkout } from './components/Checkout';
 import { OrderForm } from './components/OrderForm';
 import { ThankYou } from './components/ThankYou';
@@ -29,7 +29,6 @@ const LandingPage = () => {
         <HowItWorks />
         <About />
         <Portfolio />
-        <EmotionalStory />
         <Testimonials />
         <TrackSong />
         <FAQ />

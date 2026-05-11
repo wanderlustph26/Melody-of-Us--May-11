@@ -145,16 +145,7 @@ export const Hero = () => {
                 </div>
               </div>
 
-              {/* Float Cards */}
-              <motion.div 
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-10 -right-10 glass-dark p-6 rounded-3xl border border-white/10 shadow-xl"
-              >
-                <Heart className="w-6 h-6 text-brand-pink mb-2" />
-                <p className="text-[10px] font-bold uppercase tracking-widest text-brand-text-muted">Emotion Score</p>
-                <p className="text-2xl font-bold text-white">98%</p>
-              </motion.div>
+
             </div>
           </motion.div>
         </div>

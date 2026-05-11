@@ -4,37 +4,61 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export const Portfolio = () => {
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const [audio] = useState(new Audio());
+
   const samples = [
     {
       title: "Atmospheric Love",
       theme: "Anniversary",
-      style: "Synth Pop",
-      vocal: "Female, Ethereal",
-      story: "A journey through 10 years of shared silence and laughter.",
+      style: "Cinematic Ambient",
+      vocal: "Ethereal Harmony",
+      story: "A timeless journey through a decade of shared laughter and silent understanding.",
       image: "https://images.unsplash.com/photo-1543269664-56d93c1b41a6?auto=format&fit=crop&q=80&w=800",
-      audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      audio: "https://suno.com/song/a72ec2c7-8076-4878-8a5c-5dea225551b6?sh=u7A8r1Yt5hjtD54i",
     },
     {
-      title: "The Second Chance",
-      theme: "Apology",
+      title: "Apology",
+      theme: "The Second Chance",
       style: "Soulful R&B",
-      vocal: "Male, Sincere",
-      story: "A heartfelt invitation to rebuild what was broken.",
+      vocal: "Warm, Sincere Male",
+      story: "A heartfelt journey of reconciliation and the courage to ask for a new beginning.",
       image: "https://images.unsplash.com/photo-1494028698538-2cd52a400b17?auto=format&fit=crop&q=80&w=800",
-      audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+      audio: "https://suno.com/song/84588b3d-7772-4ecb-a3ca-2f9eb3677c35?sh=8DU2bGBIwZtcp0rk",
     },
     {
-      title: "Neon Hearts",
-      theme: "Celebration",
-      style: "Modern Pop",
-      vocal: "Female, High Energy",
-      story: "An upbeat tribute to a friendship that never sleeps.",
+      title: "Celebration",
+      theme: "Neon Hearts",
+      style: "Vibrant Techno-Pop",
+      vocal: "High-Energy Female",
+      story: "A pulse-pounding anthem celebrating the electric joy of friendship and shared memories.",
       image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=800",
-      audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+      audio: "https://suno.com/song/dc4a50d2-1bac-4296-a592-80455d9f1f2c?sh=xnU6sUf2WI0mfq3R",
     }
   ];
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const togglePlay = (idx: number) => {
+    const url = samples[idx].audio;
+    
+    // If it's a Suno link or doesn't end in an audio extension, open in new tab
+    if (url.includes('suno.com') || !url.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+      window.open(url, '_blank');
+      return;
+    }
+
+    if (playingIndex === idx) {
+      audio.pause();
+      setPlayingIndex(null);
+    } else {
+      audio.src = url;
+      audio.play();
+      setPlayingIndex(idx);
+    }
+  };
+
+  audio.onended = () => setPlayingIndex(null);
 
   return (
     <section id="samples" className="py-32 bg-brand-bg relative overflow-hidden">
@@ -65,12 +89,34 @@ export const Portfolio = () => {
                 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center transition-opacity duration-500">
                   <motion.div
-                    animate={{ scale: hoveredIndex === idx ? 1.1 : 1, opacity: hoveredIndex === idx ? 1 : 0 }}
-                    className="w-20 h-20 bg-brand-pink rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,79,163,0.5)] cursor-pointer"
+                    animate={{ scale: hoveredIndex === idx ? 1.1 : 1, opacity: hoveredIndex === idx ? 1 : (playingIndex === idx ? 1 : 0) }}
+                    onClick={() => togglePlay(idx)}
+                    className="w-20 h-20 bg-brand-pink rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,79,163,0.5)] cursor-pointer hover:scale-110 transition-transform"
                   >
-                    <PlayCircle className="w-10 h-10 text-white" />
+                    {playingIndex === idx ? (
+                      <div className="flex gap-1 items-center">
+                        <motion.div animate={{ height: [8, 20, 8] }} transition={{ repeat: Infinity, duration: 0.5 }} className="w-1 bg-white" />
+                        <motion.div animate={{ height: [15, 5, 15] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-1 bg-white" />
+                        <motion.div animate={{ height: [10, 25, 10] }} transition={{ repeat: Infinity, duration: 0.4 }} className="w-1 bg-white" />
+                      </div>
+                    ) : (
+                      <PlayCircle className="w-10 h-10 text-white" />
+                    )}
                   </motion.div>
                 </div>
+
+                {playingIndex === idx && (
+                   <div className="absolute bottom-6 left-6 right-6">
+                      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div 
+                          className="h-full bg-brand-pink" 
+                          initial={{ width: "0%" }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 30, ease: "linear" }}
+                        />
+                      </div>
+                   </div>
+                )}
 
                 <div className="absolute top-6 left-6">
                   <span className="bg-brand-pink text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg">
@@ -95,56 +141,6 @@ export const Portfolio = () => {
               </div>
             </motion.div>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export const EmotionalStory = () => {
-  return (
-    <section className="py-32 bg-[#171717] relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-24 items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <span className="text-brand-pink font-bold uppercase tracking-[0.4em] text-[10px] block mb-4">The Experience</span>
-            <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tighter leading-tight">
-              Personalized <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-pink to-brand-pink-soft">Music Architecture.</span>
-            </h2>
-            <p className="text-brand-text-muted text-lg mb-12 leading-relaxed font-medium">
-              We don't just generate audio; we build emotional structures. Our process ensures that the sonic landscape perfectly matches the narrative weight of your story.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { title: "Dynamic Range", value: "Premium" },
-                { title: "Lyrics Precision", value: "99.9%" },
-                { title: "Vocal Clarity", value: "Studio" },
-                { title: "Format", value: "Lossless" }
-              ].map((stat, i) => (
-                <div key={i} className="border-l-2 border-brand-pink/30 pl-6">
-                  <p className="text-[10px] uppercase tracking-widest text-brand-text-muted mb-1 font-bold">{stat.title}</p>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          <div className="relative group">
-            <div className="absolute inset-0 bg-brand-pink/20 rounded-[40px] blur-[40px] group-hover:blur-[60px] transition-all opacity-40"></div>
-            <div className="relative glass-dark p-2 rounded-[40px] border border-white/10">
-               <img 
-                src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=800" 
-                alt="Architecture" 
-                className="rounded-[38px] opacity-80"
-              />
-            </div>
-          </div>
         </div>
       </div>
     </section>
