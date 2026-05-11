@@ -1,32 +1,58 @@
 import { motion } from 'motion/react';
-import { Music, Music2, Heart, Send, Sparkles, MessageCircle, Quote, ChevronDown, Check, Play, Pause, ArrowRight, Zap, Target, Layers, Star } from 'lucide-react';
+import { Music, Music2, Heart, Send, Sparkles, MessageCircle, Quote, ChevronDown, Check, Play, Pause, ArrowRight, Zap, Target, Layers, Star, Mail } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 export const Navbar = () => {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-dark border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-pink rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,79,163,0.4)]">
-            <Music className="w-6 h-6 text-white" />
+    <div className="fixed top-0 left-0 right-0 z-50">
+      {/* Contact Header */}
+      <div className="bg-brand-bg/60 backdrop-blur-lg border-b border-white/5 py-3 relative overflow-hidden">
+        <div className="absolute inset-0 bg-brand-pink/5 pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative z-10">
+          <div className="hidden md:flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-brand-pink rounded-full animate-pulse"></span>
+              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Studio Status: Online</span>
+            </div>
           </div>
-          <span className="text-xl md:text-2xl font-bold text-white tracking-tighter uppercase">Melody Of Us</span>
+          
+          <a 
+            href="mailto:melodyofus.song@gmail.com" 
+            className="group flex items-center gap-3 bg-white/5 hover:bg-brand-pink/10 border border-white/10 hover:border-brand-pink/30 px-5 py-2 rounded-full transition-all duration-300"
+          >
+            <Mail className="w-3.5 h-3.5 text-brand-pink group-hover:scale-110 transition-transform" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-pink">Contact Us</span>
+              <span className="text-[11px] font-medium text-brand-text-muted group-hover:text-white transition-colors">melodyofus.song@gmail.com</span>
+            </div>
+          </a>
         </div>
-        
-        <div className="hidden lg:flex items-center gap-10">
-          <a href="#" className="nav-link text-brand-pink border-b-2 border-brand-pink pb-1">Home</a>
-          <a href="#how-it-works" className="nav-link">How it Works</a>
-          <a href="#features" className="nav-link">Features</a>
-          <a href="#samples" className="nav-link">Samples</a>
-          <a href="#faq" className="nav-link">FAQ</a>
-        </div>
-
-        <Link to="/order" className="bg-brand-pink hover:bg-brand-pink-soft text-white px-8 py-3 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold glow-pink glow-pink-hover transition-all">
-          Create Song
-        </Link>
       </div>
-    </nav>
+
+      <nav className="glass-dark border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-brand-pink rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,79,163,0.4)]">
+              <Music className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xl md:text-2xl font-bold text-white tracking-tighter uppercase">Melody Of Us</span>
+          </div>
+          
+          <div className="hidden lg:flex items-center gap-10">
+            <a href="#" className="nav-link text-brand-pink border-b-2 border-brand-pink pb-1">Home</a>
+            <a href="#how-it-works" className="nav-link">How it Works</a>
+            <a href="#features" className="nav-link">Features</a>
+            <a href="#samples" className="nav-link">Samples</a>
+            <a href="#faq" className="nav-link">FAQ</a>
+          </div>
+
+          <Link to="/order" className="bg-brand-pink hover:bg-brand-pink-soft text-white px-8 py-3 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold glow-pink glow-pink-hover transition-all">
+            Create Song
+          </Link>
+        </div>
+      </nav>
+    </div>
   );
 };
 

@@ -1,7 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+
+const PayPalButtonWrapper = ({ createOrder, onApprove, onError }: any) => {
+  const [{ isPending, isResolved, isRejected }] = usePayPalScriptReducer();
+
+  return (
+    <div className="relative min-h-[50px] flex flex-col items-center justify-center w-full">
+      {isPending && (
+        <div className="flex flex-col items-center gap-4 py-8">
+          <Loader2 className="w-8 h-8 text-brand-pink animate-spin" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-brand-pink">Initializing PayPal Gateway...</p>
+        </div>
+      )}
+      
+      {isRejected && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-8 rounded-[40px] text-center w-full shadow-2xl">
+          <AlertCircle className="w-10 h-10 mx-auto mb-4" />
+          <p className="text-lg font-bold text-white mb-2">Gate Load Failed</p>
+          <p className="text-sm text-brand-text-muted leading-relaxed">
+            PayPal could not be initialized. This is usually due to an invalid Client ID.
+          </p>
+        </div>
+      )}
+
+      {isResolved && (
+        <div className="w-full">
+          <PayPalButtons 
+            fundingSource="paypal"
+            style={{ 
+              layout: "vertical", 
+              color: "gold", 
+              shape: "pill", 
+              label: "paypal",
+              tagline: false
+            }}
+            createOrder={createOrder}
+            onApprove={onApprove}
+            onError={onError}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 import { 
   CheckCircle2, 
   Clock, 
@@ -41,28 +84,69 @@ export const Checkout = () => {
 
   if (!orderData) return null;
 
-  const handlePaymentSuccess = async (details: any) => {
-    setIsProcessing(true);
+  if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID === "test") {
+    return (
+      <div className="min-h-screen bg-brand-bg pt-32 pb-20 px-6 flex items-center justify-center">
+        <div className="bg-brand-card p-10 rounded-[40px] border border-white/5 text-center max-w-lg">
+          <AlertCircle className="w-12 h-12 text-brand-pink mx-auto mb-6" />
+          <h2 className="text-2xl font-bold text-white mb-4">Payment System Unavailable</h2>
+          <p className="text-brand-text-muted mb-8 leading-relaxed">
+            The PayPal configuration is missing. Please ensure your <code className="bg-white/5 px-2 py-1 rounded">VITE_PAYPAL_CLIENT_ID</code> is set in the environment settings.
+          </p>
+          <button 
+            onClick={() => navigate('/order')}
+            className="text-brand-pink font-black uppercase tracking-widest text-xs hover:underline"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const handlePaymentSuccess = async (captureData: any) => {
+    if (captureData.status === 'COMPLETED') {
+      navigate('/thank-you', { state: { successful: true } });
+    } else {
+      setPaymentError("Payment not completed. Please try again.");
+    }
+  };
+
+  const createPayPalOrder = async () => {
     try {
-      // In a real app, we would send the payment details and orderData to our backend here
-      const response = await fetch('/api/complete-order', {
+      const response = await fetch('/api/paypal/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: details.id,
-          payerEmail: details.payer.email_address,
-          orderData: orderData
+          totalPrice: orderData.totalPrice,
+          description: `Custom Music for ${orderData.personalDetails.fullName}`
         })
       });
-
-      if (response.ok) {
-        navigate('/thank-you', { state: { successful: true } });
-      } else {
-        setPaymentError("Order processing failed. Please contact support.");
-      }
+      const order = await response.json();
+      return order.id;
     } catch (error) {
-      console.error("Completion error:", error);
-      setPaymentError("System error during order completion.");
+      console.error("Create order error:", error);
+      setPaymentError("Could not initialize PayPal order.");
+      throw error;
+    }
+  };
+
+  const capturePayPalOrder = async (orderID: string) => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/paypal/capture-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderID,
+          orderData
+        })
+      });
+      const captureData = await response.json();
+      await handlePaymentSuccess(captureData);
+    } catch (error) {
+      console.error("Capture order error:", error);
+      setPaymentError("Failed to capture payment.");
     } finally {
       setIsProcessing(false);
     }
@@ -84,7 +168,14 @@ export const Checkout = () => {
   ];
 
   return (
-    <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
+    <PayPalScriptProvider options={{ 
+      "client-id": PAYPAL_CLIENT_ID, 
+      currency: "USD",
+      intent: "capture",
+      "disable-funding": "card,credit,paylater,venmo",
+      components: "buttons",
+      "data-sdk-integration-source": "button-factory"
+    }}>
       <div className="min-h-screen bg-brand-bg pt-32 pb-20 px-6 relative overflow-hidden">
         <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-brand-pink/5 rounded-full blur-[150px] pointer-events-none"></div>
         
@@ -115,13 +206,13 @@ export const Checkout = () => {
               className="bg-brand-pink/10 text-brand-pink px-6 py-2 rounded-full inline-flex items-center gap-3 mb-10 text-[10px] font-black uppercase tracking-[0.4em] shadow-lg shadow-brand-pink/5"
             >
               <Lock className="w-4 h-4" />
-              Secure Checkout: Step 2 of 2
+              Secure Checkout: PayPal Wallet Only
             </motion.div>
             <h1 className="text-5xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-[0.8] uppercase">
               Final <br /> <span className="text-brand-text-muted">Review.</span>
             </h1>
             <p className="text-lg text-brand-text-muted font-medium max-w-xl mx-auto">
-              Confirm your {orderData.musicDetails.occasion || 'custom'} production parameters and proceed to secure checkout.
+              Confirm your {orderData.musicDetails.occasion || 'custom'} production parameters and proceed to secure PayPal checkout.
             </p>
           </header>
 
@@ -200,36 +291,24 @@ export const Checkout = () => {
                             <AlertCircle className="w-5 h-5" /> {paymentError}
                           </div>
                         )}
-                        <PayPalButtons 
-                          style={{ layout: "vertical", color: "gold", shape: "pill", label: "checkout" }}
-                          createOrder={(data, actions) => {
-                            return actions.order.create({
-                              purchase_units: [{
-                                amount: {
-                                  currency_code: "USD",
-                                  value: orderData.totalPrice.toString()
-                                },
-                                description: `Custom Music for ${orderData.personalDetails.fullName}`
-                              }]
-                            });
+                        <PayPalButtonWrapper 
+                          createOrder={async () => {
+                            return await createPayPalOrder();
                           }}
-                          onApprove={async (data, actions) => {
-                            if (actions.order) {
-                              const details = await actions.order.capture();
-                              await handlePaymentSuccess(details);
-                            }
+                          onApprove={async (data: any) => {
+                            await capturePayPalOrder(data.orderID);
                           }}
-                          onError={(err) => {
+                          onError={(err: any) => {
                             console.error("PayPal Error:", err);
-                            setPaymentError("Payment process interrupted. Please try again.");
+                            setPaymentError("Payment process interrupted. Please check your account.");
                           }}
                         />
                       </div>
                       
                       <div className="mt-10 flex flex-wrap justify-center gap-6 opacity-30 grayscale invert brightness-200">
-                        <ShieldCheck className="w-8 h-8" />
-                        <Lock className="w-8 h-8" />
-                        <CheckCircle2 className="w-8 h-8" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4" />
+                        <Lock className="w-5 h-5" />
+                        <ShieldCheck className="w-5 h-5" />
                       </div>
                     </div>
                   </div>
