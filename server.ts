@@ -59,20 +59,21 @@ async function startServer() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          intent: 'CAPTURE',
-          purchase_units: [{
-            amount: {
-              currency_code: 'USD',
-              value: totalPrice.toString(),
-            },
-            description: description,
-          }],
-          application_context: {
-            shipping_preference: 'NO_SHIPPING',
-            user_action: 'PAY_NOW',
-          }
-        }),
+       body: JSON.stringify({
+  intent: 'CAPTURE',
+  purchase_units: [
+    {
+      amount: {
+        currency_code: 'USD',
+        value: Number(totalPrice || 0).toFixed(2),
+      },
+    },
+  ],
+  application_context: {
+    shipping_preference: 'NO_SHIPPING',
+    user_action: 'PAY_NOW',
+  },
+})
       });
 
       const order = await response.json();
